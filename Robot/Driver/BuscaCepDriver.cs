@@ -1,6 +1,5 @@
 ﻿using EasyAutomationFramework;
-using OpenQA.Selenium;
-using System.Text.RegularExpressions;
+using Sikuli4Net.sikuli_REST;
 
 namespace Robot.Driver;
 
@@ -13,36 +12,15 @@ public class BuscaCepDriver : Web
 
     public void BuscarCep(EnderecoModel endereco)
     {
-        Navigate("https://buscacep.com.br/");
-
-        AssignValue(TypeElement.Name, "cep", endereco.CEP, 2)
-            .element.SendKeys(Keys.Enter);
-        ;
-        endereco.Logradouro = GetValue(TypeElement.Xpath, "/html/body/main/div/div/div[3]/div[2]/div[2]/div[1]/div/p").Value.TrimStart();
-        endereco.Bairro = GetValue(TypeElement.Xpath, "/html/body/main/div/div/div[3]/div[2]/div[2]/div[3]/div/p").Value.TrimStart();
-        endereco.UF = ExtrairUF(GetValue(TypeElement.Xpath, "/html/body/main/div/div/div[3]/div[2]/div[2]/div[5]/div/p").Value.TrimStart());
-
-        Console.WriteLine(endereco.Logradouro);
-        Console.WriteLine(endereco.Bairro);
-        Console.WriteLine(endereco.UF);
+        Navigate("https://www.cepdobrasil.com.br/");
+        AssignValue(TypeElement.Id, "cep", endereco.CEP).element.SendKeys(Key.ENTER);
+        endereco.Logradouro = GetValue(TypeElement.CssSelector, "body > section > div > article > div:nth-child(4) > div.resultado > div.endereco > div > div.blocoendereco > a:nth-child(1) > span:nth-child(2)").element.Text;
+        endereco.Bairro = ExtrairTextoAposDoisPontos(GetValue(TypeElement.CssSelector, "body > section > div > article > div:nth-child(4) > div.resultado > div.endereco > div > div.blocoendereco > a:nth-child(4) > span").element.Text);
+        endereco.UF = GetValue(TypeElement.CssSelector, "body > section > div > article > div:nth-child(4) > div.resultado > div.endereco > div > div.blocoendereco > span:nth-child(10)").element.Text;
     }
 
-    private string ExtrairUF(string texto)
+    private string ExtrairTextoAposDoisPontos(string texto)
     {
-        Match match = Regex.Match(texto, @"\(([A-Z]{2})\)");
-
-        if (match.Success)
-        {
-            var uf = match.Groups[1].Value;
-            VerificarUF(uf);
-            return uf;
-        }
-        return string.Empty;
-    }
-
-    private void VerificarUF(string uf)
-    {
-        if (string.IsNullOrWhiteSpace(uf))
-            throw new Exception("UF inválido.");
+        return texto.Split(':')[1].Trim();
     }
 }

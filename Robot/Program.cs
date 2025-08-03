@@ -1,16 +1,26 @@
 ﻿using Robot.Driver;
+using System.Threading.Tasks;
 
 namespace Robot;
 
 internal class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
+        const string BASE_URL = "https://localhost:7028/Endereco/";
+
+        var request = new RequestProvider();
         var buscar = new BuscaCepDriver();
 
-        buscar.BuscarCep(new EnderecoModel
-        {
-            CEP = "11015300"
-        });
+        while (true) { 
+        
+        var endereco = await request.GetAsync<EnderecoModel>(BASE_URL + "ObterCepParaTratamento?robo=robo'");
+
+            buscar.BuscarCep(endereco);
+
+            await request.PutAsync(BASE_URL + "AtualizarDados", endereco);
+
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+        }
     }
 }
